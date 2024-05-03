@@ -43,7 +43,7 @@ struct ContentView: View {
     @State private var scoreTitle = ""
     
     @State private var score = 0
-    @State private var questions_count = 0
+    @State private var questionsCount = 0
     @State private var showingGameOver = false
     
     private let MAX_QUESTIONS = 8
@@ -119,13 +119,13 @@ struct ContentView: View {
             scoreTitle = "Wrong! You picked the flag of \(countries[number])"
         }
         
-        questions_count += 1
+        questionsCount += 1
         showingScore = true
         
     }
     
     func askQuestion() {
-        if questions_count >= MAX_QUESTIONS {
+        if questionsCount >= MAX_QUESTIONS {
             showingGameOver = true
         } else {
             countries.shuffle()
@@ -135,7 +135,7 @@ struct ContentView: View {
     
     func resetGame() {
         score = 0
-        questions_count = 0
+        questionsCount = 0
     }
 }
 
