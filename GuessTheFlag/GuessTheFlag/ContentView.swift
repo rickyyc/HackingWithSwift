@@ -46,6 +46,11 @@ struct ContentView: View {
     @State private var questionsCount = 0
     @State private var showingGameOver = false
     
+    @State private var animationAmount = 0.0
+    @State private var opacity = 1.0
+    @State private var saturation = 1.0
+    @State private var tappedFlag = 0
+    
     private let MAX_QUESTIONS = 8
     
     var body: some View {
@@ -61,8 +66,6 @@ struct ContentView: View {
                 
                 Text("Guess the flag")
                     .titleStyle()
-//                    .font(.largeTitle.weight(.bold))
-//                    .foregroundStyle(.white)
                 
                 VStack(spacing: 15) {
                     VStack {
@@ -76,11 +79,24 @@ struct ContentView: View {
                     
                     ForEach(0..<3) { number in
                         Button {
+                            tappedFlag =  number
                             // flag was tapped
-                            flagTapped(number)
+                            withAnimation {
+                                animationAmount += 360
+                                opacity = 0.25
+                                saturation = 0.0
+                            } completion: {
+                                flagTapped(number)
+                            }
                         } label: {
                             FlagImage(countries[number])
                         }
+                        .rotation3DEffect(
+                            .degrees(tappedFlag == number ? animationAmount : 0.0),
+                            axis: /*@START_MENU_TOKEN@*/(x: 0.0, y: 1.0, z: 0.0)/*@END_MENU_TOKEN@*/
+                        )
+                        .opacity(tappedFlag == number ? 1.0 : opacity)
+                        .saturation(tappedFlag == number ? 1.0 : saturation)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -121,7 +137,6 @@ struct ContentView: View {
         
         questionsCount += 1
         showingScore = true
-        
     }
     
     func askQuestion() {
@@ -130,6 +145,8 @@ struct ContentView: View {
         } else {
             countries.shuffle()
             correctAnswer = Int.random(in: 0...2)
+            opacity = 1.0
+            saturation = 1.0
         }
     }
     
