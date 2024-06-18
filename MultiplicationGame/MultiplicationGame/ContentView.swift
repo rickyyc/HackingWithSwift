@@ -7,19 +7,25 @@
 
 import SwiftUI
 
+struct Question: Identifiable {
+    var multiplicand: Int
+    var multiplier: Int
+    var answer: Int? = nil
+    var id: UUID
+}
+
 struct ContentView: View {
     @State private var inGamePlay = false
-    @State private var multiplier = Int.random(in: 2...12)
-    @State private var multipleOf = 2
     @State private var selectedNumOfQuestions = 0
-    @State private var answer = ""
     @State private var currentQuestionCount = 0
-    @State private var multipliers: [(id: UUID, multiplier: Int, answer: Int)] = []
+    @State private var questions: [Question] = []
     
     // used for checkmark and xmark animations
     @State private var scale = 1.0
-    @State private var lastAddedMultiplierID: UUID?
+    @State private var lastAnsweredQuestionID: UUID?
     
+    @State private var multiplicand = 2
+    @State private var answer = ""
     @FocusState private var isTextFieldFocused: Bool
     
     private let numOfQuestionsSelections = [5, 10, 20]
@@ -28,9 +34,10 @@ struct ContentView: View {
         NavigationView {
             VStack(alignment: .center) {
                 if inGamePlay {
-                    if currentQuestionCount < numOfQuestionsSelections[selectedNumOfQuestions] {
+                    if currentQuestionCount < questions.count {
+                        let currentQuestion = questions[currentQuestionCount]
                         HStack {
-                            Text("\(multipleOf) x \(multiplier) = ")
+                            Text("\(currentQuestion.multiplicand) x \(currentQuestion.multiplier) = ")
                             TextField("Answer", text: $answer)
                                 .keyboardType(.numberPad)
                                 .focused($isTextFieldFocused)
@@ -42,33 +49,34 @@ struct ContentView: View {
                                         }
                                     }
                                 }
-                                .onSubmit {
+                                .onSubmit() {
                                     onSubmitAnswer(answer)
                                 }
                         }
                     }
                     List {
-                        ForEach(multipliers, id:\.id) { id, multiplier, answer in
-                            HStack {
-                                Text("\(multipleOf) x \(multiplier) = \(answer)")
-                                
-                                let correct = checkAnswer(multiplier, answer)
-                                Image(systemName: correct ? "checkmark": "xmark")
-                                    .foregroundStyle(correct ? .green : .red)
-                                    .scaleEffect(id == lastAddedMultiplierID ? scale: 1.0)
-                                    .onAppear {
-                                        
-                                        if id == lastAddedMultiplierID {
-                                            withAnimation(.smooth(duration: 0.2).delay(0.0)) {
-                                                scale = 2.0
-                                            }
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                                withAnimation(.easeInOut(duration: 0.5)) {
-                                                    scale = 1.0
+                        ForEach(questions.reversed()) { question in
+                            if let answer = question.answer {
+                                HStack {
+                                    Text("\(question.multiplicand) x \(question.multiplier) = \(answer)")
+                                    
+                                    let correct = question.multiplicand * question.multiplier == answer
+                                    Image(systemName: correct ? "checkmark": "xmark")
+                                        .foregroundStyle(correct ? .green : .red)
+                                        .scaleEffect(question.id == lastAnsweredQuestionID ? scale: 1.0)
+                                        .onAppear {
+                                            if question.id == lastAnsweredQuestionID {
+                                                withAnimation(.smooth(duration: 0.2).delay(0.0)) {
+                                                    scale = 2.0
+                                                }
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                    withAnimation(.easeInOut(duration: 0.5)) {
+                                                        scale = 1.0
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                }
                             }
                         }
                     }
@@ -80,13 +88,11 @@ struct ContentView: View {
                     }
                 } else {
                     VStack(alignment: .center) {
-                        Stepper("Set the multiplication table: \(multipleOf)", value: $multipleOf, in: 2...12)
+                        Stepper("Set the multiplication table: \(multiplicand)", value: $multiplicand, in: 2...12)
                         Stepper("Set the number of questions: \(numOfQuestionsSelections[selectedNumOfQuestions])", value: $selectedNumOfQuestions, in: 0...2)
                         Spacer()
                         Button("Start") {
-                            inGamePlay = true
-                            currentQuestionCount = 0
-                            multipliers = []
+                            onStart()
                         }
                     }
                 }
@@ -95,28 +101,36 @@ struct ContentView: View {
             .padding()
             .navigationTitle("Multiplication Practice")
             .navigationBarTitleDisplayMode(.automatic)
-            .animation(.bouncy, value: inGamePlay)
+            .animation(.default, value: inGamePlay)
         }
     }
     
-    fileprivate func resetQuestion() {
-        multiplier = Int.random(in: 2...12)
-        self.answer = ""
-    }
-    
-    fileprivate func onSubmitAnswer(_ answer: String) {
-        guard let storedAnswer = Int(answer) else { return }
+    fileprivate func onStart() {
+        // generate and populate the questions
+        let num = numOfQuestionsSelections[selectedNumOfQuestions]
         
-        let newMultiplier = (id: UUID(), multiplier: multiplier, answer: storedAnswer)
-        multipliers.insert(newMultiplier, at: 0)
-        lastAddedMultiplierID = newMultiplier.id
-        currentQuestionCount = currentQuestionCount + 1
-        resetQuestion()
-        isTextFieldFocused = true
+        questions.removeAll(keepingCapacity: true)
+        
+        for _ in 1...num {
+            let multiplier = Int.random(in: 2...12)
+            questions.append(
+                Question(multiplicand: multiplicand, multiplier: multiplier, answer: nil, id: UUID())
+            )
+        }
+        
+        inGamePlay = true
+        currentQuestionCount = 0
     }
     
-    fileprivate func checkAnswer(_ multiplier: Int, _ answer: Int) -> Bool {
-        return answer == multiplier * multipleOf
+    fileprivate func onSubmitAnswer(_ input: String) {
+        guard let storedAnswer = Int(input) else { return }
+        
+        questions[currentQuestionCount].answer = storedAnswer
+        // update the last updated id
+        lastAnsweredQuestionID = questions[currentQuestionCount].id
+        currentQuestionCount = currentQuestionCount + 1
+        isTextFieldFocused = true
+        answer = ""
     }
 }
 
