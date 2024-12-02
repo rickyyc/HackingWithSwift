@@ -21,13 +21,11 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             Group {
-                
                 if showingGrid {
-                    GridLayoutView(astronauts: astronauts, missions: missions)
+                    GridLayoutView(missions: missions)
                 } else {
-                    ListLayoutView(astronauts: astronauts, missions: missions)
+                    ListLayoutView(missions: missions)
                 }
-                
             }
             .padding([.horizontal, .bottom])
             .navigationTitle("Moonshot")
@@ -42,7 +40,9 @@ struct ContentView: View {
                 }
             }
             .preferredColorScheme(.dark)
-            
+            .navigationDestination(for: Mission.self) { mission in
+                MissionView(mission: mission, astronauts: astronauts)
+            }
         }
     }
 }

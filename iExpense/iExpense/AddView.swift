@@ -32,15 +32,28 @@ struct AddView: View {
                     .keyboardType(.decimalPad)
             }
             .navigationTitle("Add new expense")
+//            .navigationTitle($name)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                Button("Save") {
-                    let item = ExpenseItem(name: name, type: type, amount: amount)
-                    if let dict = expensesDict[type] {
-                        dict.items.append(item)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save", systemImage: "checkmark") {
+                        let item = ExpenseItem(name: name, type: type, amount: amount)
+                        if let dict = expensesDict[type] {
+                            dict.items.append(item)
+                        }
+                        dismiss()
                     }
-                    dismiss()
                 }
+                
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", systemImage: "xmark") {
+                        dismiss()
+                    }
+                }
+                
             }
+            .navigationBarBackButtonHidden()
+            
         }
     }
 }

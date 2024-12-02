@@ -9,12 +9,9 @@ import SwiftUI
 
 struct MissionGridItemView: View {
     let mission: Mission
-    let astronauts: [String:Astronaut]
     
     var body: some View {
-        NavigationLink {
-            MissionView(mission: mission, astronauts: astronauts)
-        } label: {
+        NavigationLink(value: mission) {
             VStack {
                 Image(mission.image)
                     .resizable()
@@ -45,7 +42,6 @@ struct MissionGridItemView: View {
 
 #Preview {
     let missions: [Mission] = Bundle.main.decode("missions.json")
-    let astronauts: [String: Astronaut] = Bundle.main.decode("astronauts.json")
     
-    MissionGridItemView(mission: missions[0], astronauts: astronauts)
+    MissionGridItemView(mission: missions[0])
 }

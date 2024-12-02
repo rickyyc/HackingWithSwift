@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct GridLayoutView: View {
-    let astronauts: [String:Astronaut]
     let missions: [Mission]
     let columns = [
         GridItem(.adaptive(minimum: 150))
@@ -18,7 +17,7 @@ struct GridLayoutView: View {
         ScrollView {
             LazyVGrid(columns: columns) {
                 ForEach(missions) { mission in
-                    MissionGridItemView(mission: mission, astronauts: astronauts)
+                    MissionGridItemView(mission: mission)
                 }
             }
         }
@@ -26,8 +25,7 @@ struct GridLayoutView: View {
 }
 
 #Preview {
-    let astronauts: [String: Astronaut] = Bundle.main.decode("astronauts.json")
     let missions: [Mission] = Bundle.main.decode("missions.json")
     
-    GridLayoutView(astronauts: astronauts, missions: missions)
+    GridLayoutView(missions: missions)
 }
